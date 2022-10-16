@@ -49,7 +49,7 @@ class BootModel:
         opt_res = minimize(objective, x0=beta_init, method='trust-constr', jac=True,
                            hess=hessian, bounds=bounds, options={'verbose': 0, 'xtol': 1e-10})
 
-        return opt_res.x
+        return opt_res.x, opt_res.fun
 
     def set_samples(self):
         meb = MeBoot(reps=self.boot_reps)
@@ -69,12 +69,32 @@ class BootModel:
         x = np.concatenate((np.ones(shape=(len(self.data), 1), dtype=np.float32), self.data[self.features].values),
                            axis=1)
         y = self.data[self.out_name].values
-        initial_coefs = self.fit_model(x, y)
+        initial_coefs = self.build_fit_model(x, y, [10,11,12,13],30) #self.fit_model(x, y)
         coef_list.append(initial_coefs)
         for i in range(self.boot_reps):
             # do the modeling
             x = np.ones(shape=(len(self.data), 1), dtype=np.float32)
             for j in range(len(self.features)):
                 x = np.concatenate((x, self.samples[j].get('ensemble')[i, :].reshape(-1, 1)), axis=1)
-            coef_list.append(self.fit_model(x, y))
+            coef_list.append(self.build_fit_model(x, y, [10,11,12,13],30))
         return coef_list
+
+    def build_fit_model(self, x, y, peak_range, ad_length):
+        # first transfrom
+        t_var_index = self.features.index('Volume') + 1
+        best_score = np.inf
+        best_coefs = np.zeros(shape=(x.shape[1],),dtype=np.float32)
+        for p in peak_range:
+            if ad_length > p + 1:
+                r = np.exp(np.log(0.001)/(ad_length - p -1))
+            else:
+                break
+            adst_mat = get_adstock_matrix(x.shape[0], compute_adstock_vector(x.shape[0], [ad_length, p, r]))
+            x[:, t_var_index] = np.matmul(adst_mat, x[:,t_var_index])
+            coefs, score = self.fit_model(x, y)
+            if score < best_score:
+                best_score = score
+                best_coefs = coefs
+                best_p = p
+
+        return best_coefs

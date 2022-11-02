@@ -61,7 +61,7 @@ class BootModel:
         return
 
     def get_coef_dists(self):
-        # get the coef dists using ME bootstrap
+        # get the coefficient dists using ME bootstrap
         if self.samples is None:
             self.set_samples()
         coef_list = []
@@ -69,7 +69,7 @@ class BootModel:
         x = np.concatenate((np.ones(shape=(len(self.data), 1), dtype=np.float32), self.data[self.features].values),
                            axis=1)
         y = self.data[self.out_name].values
-        initial_coefs = self.build_fit_model(x, y, [10,11,12,13],30) #self.fit_model(x, y)
+        initial_coefs = self.build_fit_model(x, y, [10, 11, 12, 13], 30) #self.fit_model(x, y)
         coef_list.append(initial_coefs)
         for i in range(self.boot_reps):
             # do the modeling
@@ -80,7 +80,7 @@ class BootModel:
         return coef_list
 
     def build_fit_model(self, x, y, peak_range, ad_length):
-        # first transfrom
+        # first transform
         t_var_index = self.features.index('Volume') + 1
         best_score = np.inf
         best_coefs = np.zeros(shape=(x.shape[1],),dtype=np.float32)

@@ -1,6 +1,6 @@
 import numpy as np
-from utils import get_adstock_matrix, compute_adstock_vector
-from meBoot import MeBoot
+from src.utils import get_adstock_matrix, compute_adstock_vector
+from src.meBoot import MeBoot
 from scipy.optimize import minimize
 # added to the path
 
